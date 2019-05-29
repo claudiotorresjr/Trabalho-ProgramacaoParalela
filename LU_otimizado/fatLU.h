@@ -1,6 +1,7 @@
 #ifndef _FATLU_H
 #define _FATLU_H
 
+#define ABS(num)  ((num) < 0.0 ? -(num) : (num))
 
 void imprimeMatriz(double *A, int tam);
 void imprimeVetor(double *v, int tam);

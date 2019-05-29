@@ -92,12 +92,14 @@ int main(int argc, char *argv[])
 	//imprimeMatriz(A, tam);
 	//puts("\n");
 	//puts("----------Vetor de coeficientes b-----------");
-	//imprimeVetor(b);
+	//imprimeVetor(b, tam);
 	//puts("\n");
 	//imprimeMatriz(A, tam);
 	//puts("----------LU-----------");
 	//fatoracaoLU(A,L,tam);
 	metodoDeGauss(A, b, L, tam);
+	//puts("----------Vetor b apos Gauss-----------");
+	//imprimeVetor(b, tam);
 	//puts("-------------------------");
 	//puts("Apos Gauss:");
 	//puts("U:");

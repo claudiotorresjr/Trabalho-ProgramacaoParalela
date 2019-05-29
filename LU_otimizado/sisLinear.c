@@ -13,13 +13,13 @@ static void usage(char *progname)
 	exit(1);
 }
 
-inline double generateRandomA(unsigned int i, unsigned int j, unsigned int k)
+double generateRandomA(unsigned int i, unsigned int j, unsigned int k)
 {
 	double invRandMax = 1.0 / (double)RAND_MAX;
 	return ((i==j)?((double)(k<<1)):(1.0))  * ((double)rand() * invRandMax);
 }
 
-inline double generateRandomB(unsigned int k)
+double generateRandomB(unsigned int k)
 {
 	double invRandMax = 1.0 / (double)RAND_MAX;
 	return ((double)(k<<2)) * ((double)rand() * invRandMax);
@@ -52,12 +52,12 @@ int main(int argc, char *argv[])
 
 	
 	int i, j;
-	double *A = (double *)malloc(tam*tam*sizeof(double*));	
-	double *L = (double *)malloc(tam*tam*sizeof(double*));
+	double *A = (double*)aligned_alloc(64, tam*tam*sizeof(double));	
+	double *L = (double*)aligned_alloc(64, tam*tam*sizeof(double));
 
-	double *b = (double *)malloc(tam*sizeof(double));
-	double *x = (double *)malloc(tam*sizeof(double));
-	double *y = (double *)malloc(tam*sizeof(double));
+	double *b = (double*)aligned_alloc(64, tam*sizeof(double));
+	double *x = (double*)aligned_alloc(64, tam*sizeof(double));
+	double *y = (double*)aligned_alloc(64, tam*sizeof(double));
 
 	for (i = 0; i < tam; ++i) 
 	{
@@ -82,12 +82,14 @@ int main(int argc, char *argv[])
 	//imprimeMatriz(A, tam);
 	//puts("\n");
 	//puts("----------Vetor de coeficientes b-----------");
-	//imprimeVetor(b);
+	//imprimeVetor(b, tam);
 	//puts("\n");
 	//imprimeMatriz(A, tam);
 	//puts("----------LU-----------");
 	//fatoracaoLU(A,L,tam);
 	metodoDeGauss(A, b, L, tam);
+	//puts("----------Vetor b apos Gauss-----------");
+	//imprimeVetor(b, tam);
 	//puts("-------------------------");
 	//puts("Apos Gauss:");
 	//puts("U:");
@@ -110,5 +112,11 @@ int main(int argc, char *argv[])
 	printf("\n Resultado: \n");
 	imprimeVetor(x);
 	*/
+	free(A);
+	free(L);
+	free(b);
+	free(x);
+	free(y);
+
 	return 0;
 }
