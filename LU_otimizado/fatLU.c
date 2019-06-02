@@ -7,7 +7,7 @@
 #include "fatLU.h"
 #include "immintrin.h"
 
-#define NTHREADS 2
+#define NTHREADS 4
 
 void imprimeMatriz(double *A, int tam)
 {
@@ -84,6 +84,7 @@ void trocaLinhas(double *A, double *b, int tam, int k, int l)
 void metodoDeGauss(double *A, double *b, double *L, int tam)
 {
 	int j, i, k, l;
+	double m;
 	double pivo;
 
 	__m256d vetA; //vetor que guarda elementos matriz A
@@ -100,38 +101,41 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 	for(j = 0; j < tam - 1; ++j)
 	{	
 		//Pivotamento
-		//k = j;
-		//for(i = j + 1; i < tam; ++i)
-		//{
-		//	if( ABS(A[i*tam + j]) > ABS(A[k*tam + j]))
-		//	{
-		//		k = i;
-		//	}
-		//}
-		//trocaLinhas(A, b, tam, k, j);
+		k = j;
+		for(i = j + 1; i < tam; ++i)
+		{
+			if( ABS(A[i*tam + j]) > ABS(A[k*tam + j]))
+			{
+				k = i;
+			}
+		}
+		trocaLinhas(A, b, tam, k, j);
 
 		pivo = A[j*tam + j];
 
-		//if(j < tam - NTHREADS + 1)
-		//{
-			#pragma omp parallel default(none) private(i, vetM, vetA, vetB, l) \
-			shared(A, L, b, tam, j) num_threads(NTHREADS) 
+		if(j < tam - NTHREADS + 1)
+		{
+			#pragma omp parallel default(none) private(m, i, vetM, vetA, vetB, l) \
+			shared(A, L, b, tam, j, pivo) num_threads(NTHREADS) 
 			{	
 
-				int ID = omp_get_thread_num() + 1;
-				double m;
-				//#pragma omp for private(m, vetM, vetA, vetB, l)
-				for(i = j + ID; i < tam; i+=NTHREADS)
-				{			
-					m = A[i*tam + j]/A[j*tam + j];
-					printf("th %d pegando a linha %d de pivo %d (o m sera dado pela pos: (%d, %d)%lf / (%d, %d)%lf == %lf\n", \
-												ID-1, i, j, i,j, A[i*tam + j], j,j, A[j*tam + j], m);
+				//int ID = omp_get_thread_num() + 1;
+				#pragma omp for schedule(static, 100)
+				for(i = j + 1; i < tam; ++i)
+				{		
+					//printf("\n\nthread %d esta mostrando a matriz. verificando pos A[%d][%d] == %lf\n\n", ID-1, i, j, A[i*tam + j]);
+						
+					///imprimeMatriz(A, tam);	
+					m = A[i*tam + j]/pivo;		
+					
+					//printf("th %d pegando a linha %d de pivo %d (o m sera dado pela pos: (%d, %d)%lf / (%d, %d)%lf == %lf\n",
+					//							ID-1, i, j, i,j, A[i*tam + j], j,j, A[j*tam + j], m);
 					//printf("th %d calculou m == %lf\n", ID-1, m);
 					L[i*tam + j] = m;
 					vetM = _mm256_broadcast_sd(&m);
 
 					A[i*tam + j] = 0.0;
-					for(l = j + 1; l < tam - (tam % 4); l+=4)
+					for(l = j + 1; tam - l >= 4; l+=4)
 					{
 						//carrego os 256bits nao alinhados começando em (A[i*tam + j]) para o vetor AVX vetA
 						//faco o mesmo com (A[j*tam + l])
@@ -143,45 +147,46 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 						vetA = _mm256_sub_pd(vetA, vetB);
 						//A[i][l] = ...
 						_mm256_storeu_pd(&A[i*tam + l], vetA);
+						//printf("avx -> %d\n", l);
 					}
 					for (; l < tam; ++l)
 					{
 						A[i*tam + l] = A[i*tam + l] - m*A[j*tam + l];
+						//printf("normal -> %d\n", l);
 					}
 					b[i] = b[i] - m*b[j];
-				}
+					//printf("finalizando thread %d\n", ID-1);
+				}					
 			}
-			imprimeMatriz(A, tam);
-		//}
-		//else
-		//{
-		//	for(i = j + 1; i < tam; ++i)
-		//	{			
-		//		//printf("th %d finalizando a linha %d de pivo %d\n", 0, i, j);
-		//		m = A[i*tam + j]/pivo;
-		//		L[i*tam + j] = m;
-		//		vetM = _mm256_broadcast_sd(&m);
-		//		
-		//		A[i*tam + j] = 0.0;
-		//		for(l = j + 1; l < tam - (tam % 4); l+=4)
-		//		{
-		//			//carrego os 256bits nao alinhados começando em (A[i*tam + j]) para o vetor AVX vetA
-		//			//faco o mesmo com (A[j*tam + l])
-		//			//a cada iteraçao pego os proximos 256bits 
-		//			vetA = _mm256_loadu_pd(&A[i*tam + l]); //A[i][l]
-		//			vetB = _mm256_loadu_pd(&A[j*tam + l]); //A[j][l]
-		//			//A[i][l] - m*A[j][l];
-		//			vetB = _mm256_mul_pd(vetB, vetM);
-		//			vetA = _mm256_sub_pd(vetA, vetB);
-		//			//A[i][l] = ...
-		//			_mm256_storeu_pd(&A[i*tam + l], vetA);
-		//		}
-		//		for (; l < tam; ++l)
-		//		{
-		//			A[i*tam + l] = A[i*tam + l] - m*A[j*tam + l];
-		//		}
-		//		b[i] = b[i] - m*b[j];
-		//	}
-		//}
+		}
+		else
+		{
+			for(i = j + 1; i < tam; ++i)
+			{		
+				m = A[i*tam + j]/pivo;		
+				
+				L[i*tam + j] = m;
+				vetM = _mm256_broadcast_sd(&m);
+				A[i*tam + j] = 0.0;
+				for(l = j + 1; tam - l >= 4; l+=4)
+				{
+					//carrego os 256bits nao alinhados começando em (A[i*tam + j]) para o vetor AVX vetA
+					//faco o mesmo com (A[j*tam + l])
+					//a cada iteraçao pego os proximos 256bits 
+					vetA = _mm256_loadu_pd(&A[i*tam + l]); //A[i][l]
+					vetB = _mm256_loadu_pd(&A[j*tam + l]); //A[j][l]
+					//A[i][l] - m*A[j][l];
+					vetB = _mm256_mul_pd(vetB, vetM);
+					vetA = _mm256_sub_pd(vetA, vetB);
+					//A[i][l] = ...
+					_mm256_storeu_pd(&A[i*tam + l], vetA);
+				}
+				for (; l < tam; ++l)
+				{
+					A[i*tam + l] = A[i*tam + l] - m*A[j*tam + l];
+				}
+				b[i] = b[i] - m*b[j];
+			}
+		}
 	}
 }

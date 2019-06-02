@@ -115,15 +115,11 @@ void metodoDeGauss(double **A, double *b, double **L, int tam)
 			m = A[i][j]/A[j][j];
 			L[i][j] = m;
 			A[i][j] = 0.0;
-			printf("%lf\n", m);
 			for(l = j+1; l < tam; l++)
 			{
 				A[i][l] = A[i][l] - m*A[j][l];
 			}
 			b[i] = b[i] - m*b[j];
 		}
-		printf("\n");
-			imprimeMatriz(A, tam);
-		printf("\n");
 	}
 }

@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 	//puts("----------Vetor de coeficientes b-----------");
 	//imprimeVetor(b, tam);
 	//puts("\n");
-	imprimeMatriz(A, tam);
+	//imprimeMatriz(A, tam);
 	//puts("----------LU-----------");
 	//fatoracaoLU(A,L,tam);
 	//LIKWID_MARKER_START("fatLU");
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 	//apos Gauss, A virou U
 	retroSubstitution(A, x, y, tam);
 	puts("----------Resultado-----------");
-	//imprimeVetor(x, tam);
+	imprimeVetor(x, tam);
 	/*
 	imprimeMatriz(A);
 	imprimeVetor(b);
