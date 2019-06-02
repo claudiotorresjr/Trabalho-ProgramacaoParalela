@@ -4,6 +4,7 @@
 #include <getopt.h>   /* getopt */
 
 #include <omp.h>
+#include <likwid.h>
 
 #include "fatLU.h"
 
@@ -79,6 +80,7 @@ int main(int argc, char *argv[])
 	double *x = (double *)malloc(tam*sizeof(double));
 	double *y = (double *)malloc(tam*sizeof(double));
 	
+	//LIKWID_MARKER_INIT;
 	/*--------------------------------------
 	(1)-> A.x = b -> fatorar A em L.U
 	(2)-> L.U.x = b
@@ -94,10 +96,12 @@ int main(int argc, char *argv[])
 	//puts("----------Vetor de coeficientes b-----------");
 	//imprimeVetor(b, tam);
 	//puts("\n");
-	//imprimeMatriz(A, tam);
+	imprimeMatriz(A, tam);
 	//puts("----------LU-----------");
 	//fatoracaoLU(A,L,tam);
+	//LIKWID_MARKER_START("fatLU");
 	metodoDeGauss(A, b, L, tam);
+	//LIKWID_MARKER_STOP("fatLU");
 	//puts("----------Vetor b apos Gauss-----------");
 	//imprimeVetor(b, tam);
 	//puts("-------------------------");
@@ -114,7 +118,7 @@ int main(int argc, char *argv[])
 	//apos Gauss, A virou U
 	retroSubstitution(A, x, y, tam);
 	puts("----------Resultado-----------");
-	imprimeVetor(x, tam);
+	//imprimeVetor(x, tam);
 	/*
 	imprimeMatriz(A);
 	imprimeVetor(b);
@@ -122,5 +126,13 @@ int main(int argc, char *argv[])
 	printf("\n Resultado: \n");
 	imprimeVetor(x);
 	*/
+
+	free(A);
+	free(L);
+	free(b);
+	free(x);
+	free(y);
+	
+	//LIKWID_MARKER_CLOSE;
 	return 0;
 }

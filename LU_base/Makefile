@@ -5,9 +5,9 @@
 #	LIKWID_FLAGS = -DLIKWID_PERFMON -I$(LIKWID)/include
 #	LIKWID_LIBS = -L$(LIKWID)/lib -llikwid
 
-		CC = gcc -std=c11 -O3 -Wall -lm
-#	CFLAGS = $(LIKWID_FLAGS)
-#	LFLAGS = $(LIKWID_LIBS) -O3 -Wall -lm
+		CC = gcc -std=c11 -O3
+	CFLAGS = -Wall #$(LIKWID_FLAGS)
+	LFLAGS = -lm   #$(LIKWID_LIBS) 
 
 .PHONY: clean limpa purge faxina distclean debug avx
 

@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 			Bt[i*tam + j] = B[j*tam + i];
 		}
 	}
-
+	printf("%d\n", tam);
 	LIKWID_MARKER_INIT;
 
 	LIKWID_MARKER_START("multMatrizNormal");

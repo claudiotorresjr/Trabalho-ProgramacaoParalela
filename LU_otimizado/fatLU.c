@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
+
+#include <omp.h>
 
 #include "fatLU.h"
 #include "immintrin.h"
 
+#define NTHREADS 2
 
 void imprimeMatriz(double *A, int tam)
 {
@@ -81,13 +85,14 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 {
 	int j, i, k, l;
 	double pivo;
-	double m;
 
 	__m256d vetA; //vetor que guarda elementos matriz A
 	__m256d vetB; //vetor nao sei pq criei
 	__m256d vetM; //vetor dos coeficientes de multiplicacao (fator de eliminacao)
 
-	for(i = 0; i < tam; i++)
+
+	memset(L, 0.0, tam*tam*sizeof(double));
+	for(i = 0; i < tam; ++i)
 	{
 		L[i*tam + i] = 1.0;
 	}
@@ -95,44 +100,88 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 	for(j = 0; j < tam - 1; ++j)
 	{	
 		//Pivotamento
-		k = j;
-		for(i = j + 1; i < tam; ++i)
-		{
-			if( ABS(A[i*tam + j]) > ABS(A[k*tam + j]))
-			{
-				k = i;
-			}
-		}
-		trocaLinhas(A, b, tam, k, j);
+		//k = j;
+		//for(i = j + 1; i < tam; ++i)
+		//{
+		//	if( ABS(A[i*tam + j]) > ABS(A[k*tam + j]))
+		//	{
+		//		k = i;
+		//	}
+		//}
+		//trocaLinhas(A, b, tam, k, j);
 
 		pivo = A[j*tam + j];
-		for(i = j + 1; i < tam; ++i)
-		{		
-			
-			m = L[i*tam + j] = A[i*tam + j]/pivo;
-			vetM = _mm256_broadcast_sd(&m);
 
-			A[i*tam + j] = 0.0;
-			for(l = j+1; l < tam - (tam % 4); l+=4)
-			{
-				//carrego os 256bits nao alinhados começando em (A[i*tam + j]) para o vetor AVX vetA
-				//faco o mesmo com (A[j*tam + l])
-				//a cada iteraçao pego os proximos 256bits 
-				vetA = _mm256_loadu_pd(&A[i*tam + l]); //A[i][l]
-				vetB = _mm256_loadu_pd(&A[j*tam + l]); //A[j][l]
+		//if(j < tam - NTHREADS + 1)
+		//{
+			#pragma omp parallel default(none) private(i, vetM, vetA, vetB, l) \
+			shared(A, L, b, tam, j) num_threads(NTHREADS) 
+			{	
 
-				//A[i][l] - m*A[j][l];
-				vetB = _mm256_mul_pd(vetB, vetM);
-				vetA = _mm256_sub_pd(vetA, vetB);
+				int ID = omp_get_thread_num() + 1;
+				double m;
+				//#pragma omp for private(m, vetM, vetA, vetB, l)
+				for(i = j + ID; i < tam; i+=NTHREADS)
+				{			
+					m = A[i*tam + j]/A[j*tam + j];
+					printf("th %d pegando a linha %d de pivo %d (o m sera dado pela pos: (%d, %d)%lf / (%d, %d)%lf == %lf\n", \
+												ID-1, i, j, i,j, A[i*tam + j], j,j, A[j*tam + j], m);
+					//printf("th %d calculou m == %lf\n", ID-1, m);
+					L[i*tam + j] = m;
+					vetM = _mm256_broadcast_sd(&m);
 
-				//A[i][l] = ...
-				_mm256_storeu_pd(&A[i*tam + l], vetA);
+					A[i*tam + j] = 0.0;
+					for(l = j + 1; l < tam - (tam % 4); l+=4)
+					{
+						//carrego os 256bits nao alinhados começando em (A[i*tam + j]) para o vetor AVX vetA
+						//faco o mesmo com (A[j*tam + l])
+						//a cada iteraçao pego os proximos 256bits 
+						vetA = _mm256_loadu_pd(&A[i*tam + l]); //A[i][l]
+						vetB = _mm256_loadu_pd(&A[j*tam + l]); //A[j][l]
+						//A[i][l] - m*A[j][l];
+						vetB = _mm256_mul_pd(vetB, vetM);
+						vetA = _mm256_sub_pd(vetA, vetB);
+						//A[i][l] = ...
+						_mm256_storeu_pd(&A[i*tam + l], vetA);
+					}
+					for (; l < tam; ++l)
+					{
+						A[i*tam + l] = A[i*tam + l] - m*A[j*tam + l];
+					}
+					b[i] = b[i] - m*b[j];
+				}
 			}
-			for ( ; l < tam; ++l)
-			{
-				A[i*tam + l] = A[i*tam + l] - m*A[j*tam + l];
-			}
-			b[i] = b[i] - m*b[j];
-		}
+			imprimeMatriz(A, tam);
+		//}
+		//else
+		//{
+		//	for(i = j + 1; i < tam; ++i)
+		//	{			
+		//		//printf("th %d finalizando a linha %d de pivo %d\n", 0, i, j);
+		//		m = A[i*tam + j]/pivo;
+		//		L[i*tam + j] = m;
+		//		vetM = _mm256_broadcast_sd(&m);
+		//		
+		//		A[i*tam + j] = 0.0;
+		//		for(l = j + 1; l < tam - (tam % 4); l+=4)
+		//		{
+		//			//carrego os 256bits nao alinhados começando em (A[i*tam + j]) para o vetor AVX vetA
+		//			//faco o mesmo com (A[j*tam + l])
+		//			//a cada iteraçao pego os proximos 256bits 
+		//			vetA = _mm256_loadu_pd(&A[i*tam + l]); //A[i][l]
+		//			vetB = _mm256_loadu_pd(&A[j*tam + l]); //A[j][l]
+		//			//A[i][l] - m*A[j][l];
+		//			vetB = _mm256_mul_pd(vetB, vetM);
+		//			vetA = _mm256_sub_pd(vetA, vetB);
+		//			//A[i][l] = ...
+		//			_mm256_storeu_pd(&A[i*tam + l], vetA);
+		//		}
+		//		for (; l < tam; ++l)
+		//		{
+		//			A[i*tam + l] = A[i*tam + l] - m*A[j*tam + l];
+		//		}
+		//		b[i] = b[i] - m*b[j];
+		//	}
+		//}
 	}
 }
