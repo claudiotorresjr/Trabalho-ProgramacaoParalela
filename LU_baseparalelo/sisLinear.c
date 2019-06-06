@@ -74,14 +74,32 @@ int main(int argc, char *argv[])
 	}
 	
 
-	for (i = 0; i < tam; ++i) 
-	{
-		for (j = 0; j < tam; ++j) 
-		{	
-			A[i][j] = generateRandomA(i, j, tam);
-		}
-		b[i] = generateRandomB(tam);
-	}
+	//for (i = 0; i < tam; ++i) 
+	//{
+	//	for (j = 0; j < tam; ++j) 
+	//	{	
+	//		A[i][j] = generateRandomA(i, j, tam);
+	//	}
+	//	b[i] = generateRandomB(tam);
+	//}
+
+	A[0][0] = 9.0; A[0][1] = 3.0; A[0][2] = 3.0; A[0][3] = 3.0;
+	A[1][0] = 3.0; A[1][1] = 10.0; A[1][2] = -2.0; A[1][3] = -2.0;
+	A[2][0] = 3.0; A[2][1] = -2.0; A[2][2] = 18.0; A[2][3] = 10.0;
+	A[3][0] = 3.0; A[3][1] = -2.0; A[3][2] = 10.0; A[3][3] = 10.0;
+
+	//U[0][0] = 1.0; U[0][1] = 0.333333; U[0][2] = 0.333333; U[0][3] = 0.333333;
+	//U[1][0] = 0.0; U[1][1] = 1.0; U[1][2] = -0.333333; U[1][3] = -0.333333;
+	//U[2][0] = 0.0; U[2][1] = 0.0; U[2][2] = 1.0; U[2][3] = 1/2;
+	//U[3][0] = 0.0; U[3][1] = 0.0; U[3][2] = 0.0; U[3][3] = 1.0;
+
+	L[0][0] = 9.0; L[0][1] = 0.0; L[0][2] = 0.0; L[0][3] = 0.0;
+	L[1][0] = 3.0; L[1][1] = 9.0; L[1][2] = 0.0; L[1][3] = 0.0;
+	L[2][0] = 3.0; L[2][1] = -3.0; L[2][2] = 16.0; L[2][3] = 0.0;
+	L[3][0] = 3.0; L[3][1] = -3.0; L[3][2] = 8.0; L[3][3] = 4.0;
+
+
+	b[0] = 24.0; b[1] = 17.0; b[2] = 45.0; b[3] = 49.0;
 	
 	double *x = (double *)malloc(tam*sizeof(double));
 	double *y = (double *)malloc(tam*sizeof(double));
@@ -96,15 +114,12 @@ int main(int argc, char *argv[])
 	(4)-> L.y = b
 	--------------------------------------*/
 
-	//puts("----------Matriz A-----------");
-	//imprimeMatriz(A, tam);
-	//puts("\n");
+	puts("----------Matriz A-----------");
+	imprimeMatriz(A, tam);
+	puts("\n");
 	//puts("----------Vetor de coeficientes b-----------");
 	//imprimeVetor(b, tam);
 	//puts("\n");
-	//imprimeMatriz(A, tam);
-	//puts("----------LU-----------");
-	//fatoracaoLU(A,L,tam);
 	//LIKWID_MARKER_START("fatLU");
 	metodoDeGauss(A, b, L, U, tam);
 	//LIKWID_MARKER_STOP("fatLU");
@@ -112,10 +127,10 @@ int main(int argc, char *argv[])
 	//imprimeVetor(b, tam);
 	//puts("-------------------------");
 	//puts("Apos Gauss:");
-	//puts("U:");
-	//imprimeMatriz(A, tam);
-	//puts("\nL:");
-	//imprimeMatriz(L, tam);
+	puts("U:");
+	imprimeMatriz(U, tam);
+	puts("\nL:");
+	imprimeMatriz(L, tam);
 	
 	forwardSubstitution(L, y, b, tam);
 	//puts("y:");
@@ -123,8 +138,8 @@ int main(int argc, char *argv[])
 	
 	//apos Gauss, A virou U
 	retroSubstitution(U, x, y, tam);
-	puts("----------Resultado-----------");
-	imprimeVetor(x, tam);
+	//puts("----------Resultado-----------");
+	//imprimeVetor(x, tam);
 	/*
 	imprimeMatriz(A);
 	imprimeVetor(b);
