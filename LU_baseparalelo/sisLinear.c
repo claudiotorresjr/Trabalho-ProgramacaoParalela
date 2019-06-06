@@ -14,13 +14,13 @@ static void usage(char *progname)
 	exit(1);
 }
 
-double generateRandomA(unsigned int i, unsigned int j, unsigned int k)
+inline double generateRandomA(unsigned int i, unsigned int j, unsigned int k)
 {
 	double invRandMax = 1.0 / (double)RAND_MAX;
 	return ((i==j)?((double)(k<<1)):(1.0))  * ((double)rand() * invRandMax);
 }
 
-double generateRandomB(unsigned int k)
+inline double generateRandomB(unsigned int k)
 {
 	double invRandMax = 1.0 / (double)RAND_MAX;
 	return ((double)(k<<2)) * ((double)rand() * invRandMax);
@@ -53,21 +53,38 @@ int main(int argc, char *argv[])
 
 	
 	int i, j;
-	double *A = (double*)malloc(tam*tam*sizeof(double));	
-	double *L = (double*)malloc(tam*tam*sizeof(double));
+	double *b = (double *)malloc(tam*sizeof(double));
 
-	double *b = (double*)malloc(tam*sizeof(double));
-	double *x = (double*)malloc(tam*sizeof(double));
-	double *y = (double*)malloc(tam*sizeof(double));
+	double **A = (double **)malloc(tam*sizeof(double*));		
+	for(i = 0; i < tam; i++)
+	{
+		A[i] = (double *)malloc(tam*sizeof(double));
+	}
+
+	double **L = (double **)malloc(tam*sizeof(double*));
+	for(i = 0; i < tam; i++)
+	{
+		L[i] = (double *)malloc(tam*sizeof(double));
+	}
+
+	double **U = (double **)malloc(tam*sizeof(double*));
+	for(i = 0; i < tam; i++)
+	{
+		U[i] = (double *)malloc(tam*sizeof(double));
+	}
+	
 
 	for (i = 0; i < tam; ++i) 
 	{
 		for (j = 0; j < tam; ++j) 
 		{	
-			A[i*tam + j] = generateRandomA(i, j, tam);
+			A[i][j] = generateRandomA(i, j, tam);
 		}
 		b[i] = generateRandomB(tam);
 	}
+	
+	double *x = (double *)malloc(tam*sizeof(double));
+	double *y = (double *)malloc(tam*sizeof(double));
 	
 	//LIKWID_MARKER_INIT;
 	/*--------------------------------------
@@ -89,14 +106,14 @@ int main(int argc, char *argv[])
 	//puts("----------LU-----------");
 	//fatoracaoLU(A,L,tam);
 	//LIKWID_MARKER_START("fatLU");
-	metodoDeGauss(A, b, L, tam);
+	metodoDeGauss(A, b, L, U, tam);
 	//LIKWID_MARKER_STOP("fatLU");
 	//puts("----------Vetor b apos Gauss-----------");
 	//imprimeVetor(b, tam);
 	//puts("-------------------------");
 	//puts("Apos Gauss:");
 	//puts("U:");
-	imprimeMatriz(A, tam);
+	//imprimeMatriz(A, tam);
 	//puts("\nL:");
 	//imprimeMatriz(L, tam);
 	
@@ -105,9 +122,9 @@ int main(int argc, char *argv[])
 	//imprimeVetor(y, tam);
 	
 	//apos Gauss, A virou U
-	retroSubstitution(A, x, y, tam);
+	retroSubstitution(U, x, y, tam);
 	puts("----------Resultado-----------");
-	//imprimeVetor(x, tam);
+	imprimeVetor(x, tam);
 	/*
 	imprimeMatriz(A);
 	imprimeVetor(b);
@@ -118,10 +135,11 @@ int main(int argc, char *argv[])
 
 	free(A);
 	free(L);
+	free(U);
 	free(b);
 	free(x);
 	free(y);
-
+	
 	//LIKWID_MARKER_CLOSE;
 	return 0;
 }

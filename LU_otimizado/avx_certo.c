@@ -120,7 +120,7 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 			{	
 
 				//int ID = omp_get_thread_num() + 1;
-				#pragma omp for schedule(static, 100)
+				#pragma omp for
 				for(i = j + 1; i < tam; ++i)
 				{		
 					//printf("\n\nthread %d esta mostrando a matriz. verificando pos A[%d][%d] == %lf\n\n", ID-1, i, j, A[i*tam + j]);
