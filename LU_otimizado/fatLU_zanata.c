@@ -113,7 +113,7 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 
 		pivo = A[j*tam + j];
 
-		#pragma omp parallel for default(none) shared(A, pivo, L, tam, j)
+		#pragma omp parallel for default(none) shared(A, pivo, L, tam, j) num_threads(NTHREADS) 
 		for(i = j + 1 ; i < tam ; ++i ){
 			L[i*tam + j] = A[i*tam + j]/pivo;		
 		}
