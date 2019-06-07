@@ -81,36 +81,31 @@ void trocaLinhas(double **A, double *b, int tam, int k, int l)
 void metodoDeGauss(double **A, double *b, double **L, double **U, int tam)
 {
 	int j, k, i;
-
-	//for(i = 0; i < tam; ++i)
-	//{
-	//	L[i][0] = A[i][0];
-	//}
+	U[0][0] = 1.0;
+	L[0][0] = A[0][0];
 	for(j = 1; j < tam; ++j)
 	{
-		U[0][j] = A[0][j]/L[0][0];
-	}
-	for(i = 0; i < tam; ++i)
-	{
-		U[i][i] = 1.0;
-	}
+		L[j][0] = A[j][0];
+		U[j][j] = 1.0;
+		U[0][j] = A[0][j] / L[0][0]; 
+	}	
 	
-	for(i = 1; i <= tam; ++i)
+	for(i = 1; i < tam; ++i)
 	{
-		for(j = 1; j <= tam; ++j)
+		for(j = 1; j < tam; ++j) 
 		{
 			if(i >= j)
 			{
-			//	L[i][j] = A[i][j];
-			//	for(k = 0; k < j; ++k)
-			//	{
-			//		L[i][j] -= L[i][k]*U[k][j];
-			//	}
+				L[i][j] = A[i][j];
+				for(k = 0; k < j ; ++k)
+				{
+					L[i][j] -= L[i][k]*U[k][j];
+				}
 			}
 			else
 			{
 				U[i][j] = A[i][j];
-				for(k = 0; k < j-1; ++k)
+				for(k = 0; k < j; ++k)
 				{
 					U[i][j] -= L[i][k]*U[k][j];
 				}
