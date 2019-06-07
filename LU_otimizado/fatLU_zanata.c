@@ -84,7 +84,7 @@ void trocaLinhas(double *A, double *b, int tam, int k, int l)
 void metodoDeGauss(double *A, double *b, double *L, int tam)
 {
 	int j, i, k, l;
-	double m;
+
 	double pivo;
 
 	__m256d vetA; //vetor que guarda elementos matriz A
@@ -113,16 +113,17 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 
 		pivo = A[j*tam + j];
 
+		#pragma omp parallel for default(none) shared(A, pivo, L, tam, j)
+		for(i = j + 1 ; i < tam ; ++i ){
+			L[i*tam + j] = A[i*tam + j]/pivo;		
+		}
+
 		if(j < tam - NTHREADS + 1)
 		{
-			#pragma omp parallel default(none) private(m, i, vetM, vetA, vetB, l) \
+			#pragma omp parallel default(none) private(i, vetM, vetA, vetB, l) \
 			shared(A, L, b, tam, j, pivo) num_threads(NTHREADS) 
 			{	
 				//#pragma omp for
-				for(i = j + 1 ; i < tam ; ++i ){
-					m = A[i*tam + j]/pivo;		
-					L[i*tam + j] = m;
-				}
 				//int ID = omp_get_thread_num() + 1;
 				#pragma omp for
 				for(i = j + 1; i < tam; ++i)
@@ -153,22 +154,28 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 					}
 					for (; l < tam; ++l)
 					{
-						A[i*tam + l] = A[i*tam + l] - m*A[j*tam + l];
+						A[i*tam + l] = A[i*tam + l] - L[i*tam + j]*A[j*tam + l];
 						//printf("normal -> %d\n", l);
 					}
-					b[i] = b[i] - m*b[j];
+					b[i] = b[i] - L[i*tam + j]*b[j];
 					//printf("finalizando thread %d\n", ID-1);
 				}					
 			}
 		}
 		else
 		{
-			
-			for (; l < tam; ++l)
-			{
-				A[i*tam + l] = A[i*tam + l] - m*A[j*tam + l];
+			for(i = j + 1; i < tam; ++i)
+			{				
+				
+				A[i*tam + j] = 0.0;
+				
+				for (l = j + 1; l < tam; ++l)
+				{
+					A[i*tam + l] = A[i*tam + l] - L[i*tam + j]*A[j*tam + l];
+				}
+				b[i] = b[i] - L[i*tam + j]*b[j];
 			}
-			b[i] = b[i] - m*b[j];
+
 		}
 	}
 }
