@@ -118,32 +118,22 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 			{	
 				blockstart = (j + 1) + blockCol*BLOCK_SIZE; blockend = blockstart + BLOCK_SIZE;
 				//printf("blockCol %d de %d blocos -- pivo == %d\n", blockCol, (tam - j - 1)/BLOCK_SIZE, j);
-				vetB = _mm256_loadu_pd(&A[j*tam + blockstart]);
-				for(i = lin; i < MIN(linend, tam); ++i)
-				{
-					//printf("fazendo elementos de A[%d][%d] ate A[%d][%d]\n\n", i, blockstart, i, blockend-1);
-					vetM = _mm256_broadcast_sd(&L[i*tam + j]);
-					vetC = _mm256_mul_pd(vetB, vetM);
+				
+				for (; blockstart < blockend; blockstart += 4) {
 					
-					vetA = _mm256_loadu_pd(&A[i*tam + blockstart]); 
-					vetA = _mm256_sub_pd(vetA, vetC);
-					_mm256_storeu_pd(&A[i*tam + blockstart], vetA);
+					vetB = _mm256_loadu_pd(&A[j*tam + blockstart]);
+					for(i = lin; i < MIN(linend, tam); ++i)
+					{
+						//printf("fazendo elementos de A[%d][%d] ate A[%d][%d]\n\n", i, blockstart, i, blockend-1);
+						vetM = _mm256_broadcast_sd(&L[i*tam + j]);
+						vetC = _mm256_mul_pd(vetB, vetM);
+					
+						vetA = _mm256_loadu_pd(&A[i*tam + blockstart]); 
+						vetA = _mm256_sub_pd(vetA, vetC);
+						_mm256_storeu_pd(&A[i*tam + blockstart], vetA);
 
 					//b[i] -= m*b[j];
-				}
-				blockstart += 4;
-				vetB = _mm256_loadu_pd(&A[j*tam + blockstart]);
-				for(i = lin; i < MIN(linend, tam); ++i)
-				{
-					//printf("fazendo elementos de A[%d][%d] ate A[%d][%d]\n\n", i, blockstart, i, blockend-1);
-					vetM = _mm256_broadcast_sd(&L[i*tam + j]);
-					vetC = _mm256_mul_pd(vetB, vetM);
-					
-					vetA = _mm256_loadu_pd(&A[i*tam + blockstart]); 
-					vetA = _mm256_sub_pd(vetA, vetC);
-					_mm256_storeu_pd(&A[i*tam + blockstart], vetA);
-
-					//b[i] -= m*b[j];
+					}
 				}
 			}
 		}
