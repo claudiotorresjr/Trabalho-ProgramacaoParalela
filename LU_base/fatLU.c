@@ -99,16 +99,18 @@ void metodoDeGauss(double **A, double *b, double **L, int tam)
 	for(j = 0; j < tam - 1; ++j)
 	{
 		
+		//imprimeMatriz(A, tam);
+		//printf("\n");
 		//Pivotamento
-		k = j;
-		for(i = j + 1; i < tam; ++i)
-		{
-			if( fabs(A[i][j]) > fabs(A[k][j]))
-			{
-				k = i;
-			}
-		}
-		trocaLinhas(A, b, tam, k, j);
+		//k = j;
+		//for(i = j + 1; i < tam; ++i)
+		//{
+		//	if( fabs(A[i][j]) > fabs(A[k][j]))
+		//	{
+		//		k = i;
+		//	}
+		//}
+		//trocaLinhas(A, b, tam, k, j);
 		
 		for(i = j + 1; i < tam; ++i)
 		{		

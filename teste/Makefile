@@ -1,13 +1,13 @@
 		PROG   = matriz_desempenho
 		OBJS   = $(PROG).o matriz.o
 
-		LIKWID = /home/soft/likwid
-	LIKWID_FLAGS = -DLIKWID_PERFMON -I$(LIKWID)/include
-	LIKWID_LIBS = -L$(LIKWID)/lib -llikwid
+	#	LIKWID = /home/soft/likwid
+	#LIKWID_FLAGS = -DLIKWID_PERFMON -I$(LIKWID)/include
+	#LIKWID_LIBS = -L$(LIKWID)/lib -llikwid
 
-		CC = gcc -std=c11
-	CFLAGS = $(LIKWID_FLAGS)
-	LFLAGS = $(LIKWID_LIBS) -O3 -Wall -lm
+		CC = gcc -std=c11 -fopenmp -O3 -Wall -lm 
+	#CFLAGS = $(LIKWID_FLAGS)
+	#LFLAGS = $(LIKWID_LIBS) 
 
 .PHONY: clean limpa purge faxina distclean debug avx
 

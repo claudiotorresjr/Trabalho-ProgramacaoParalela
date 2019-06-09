@@ -78,41 +78,54 @@ void trocaLinhas(double **A, double *b, int tam, int k, int l)
 	b[l] = aux;
 }
 
-void metodoDeGauss(double **A, double *b, double **L, double **U, int tam)
+void metodoDeGauss(double **A, double *b, double **L, int tam)
 {
-	int j, k, i;
-	U[0][0] = 1.0;
-	L[0][0] = A[0][0];
-	for(j = 1; j < tam; ++j)
-	{
-		L[j][0] = A[j][0];
-		U[j][j] = 1.0;
-		U[0][j] = A[0][j] / L[0][0]; 
-	}	
-	
-	for(i = 1; i < tam; ++i)
-	{
-		for(j = 1; j < tam; ++j) 
+	int j, k, i, l;
+	double m;
+
+	for(i = 0; i < tam; i++)
+	{	
+		for(j = 0; j < tam; ++j)
 		{
-			if(i >= j)
+			if(i == j)
 			{
-				L[i][j] = A[i][j];
-				for(k = 0; k < j ; ++k)
-				{
-					L[i][j] -= L[i][k]*U[k][j];
-				}
+				L[i][j] = 1.0;
 			}
 			else
 			{
-				U[i][j] = A[i][j];
-				for(k = 0; k < j; ++k)
-				{
-					U[i][j] -= L[i][k]*U[k][j];
-				}
-				U[i][j] /= L[i][i];
+				L[i][j] = 0.0;
 			}
 		}
 	}
+	
+	for(j = 0; j < tam - 1; ++j)
+	{
+		
+		//imprimeMatriz(A, tam);
+		//printf("\n");
+		//Pivotamento
+		//k = j;
+		//for(i = j + 1; i < tam; ++i)
+		//{
+		//	if( fabs(A[i][j]) > fabs(A[k][j]))
+		//	{
+		//		k = i;
+		//	}
+		//}
+		//trocaLinhas(A, b, tam, k, j);
+		
+		#pragma omp parallel for private(m, l) num_threads(NTHREADS) schedule(static, tam/NTHREADS)
+		for(i = j + 1; i < tam; ++i)
+		{		
+			m = A[i][j]/A[j][j];
+			L[i][j] = m;
+			A[i][j] = 0.0;
+			for(l = j+1; l < tam; l++)
+			{
+				A[i][l] = A[i][l] - m*A[j][l];
+			}
+			b[i] = b[i] - m*b[j];
+		}
+	}
 }
-
 //https://nptel.ac.in/courses/111107062/module2/lecture3/lecture3.pdf

@@ -53,12 +53,12 @@ int main(int argc, char *argv[])
 
 	
 	int i, j;
-	double *A = (double*)malloc(tam*tam*sizeof(double));	
-	double *L = (double*)malloc(tam*tam*sizeof(double));
+	double *A = (double*)aligned_alloc(64, tam*tam*sizeof(double));	
+	double *L = (double*)aligned_alloc(64, tam*tam*sizeof(double));
 
-	double *b = (double*)malloc(tam*sizeof(double));
-	double *x = (double*)malloc(tam*sizeof(double));
-	double *y = (double*)malloc(tam*sizeof(double));
+	double *b = (double*)aligned_alloc(64, tam*sizeof(double));
+	double *x = (double*)aligned_alloc(64, tam*sizeof(double));
+	double *y = (double*)aligned_alloc(64, tam*sizeof(double));
 
 	for (i = 0; i < tam; ++i) 
 	{
@@ -95,10 +95,10 @@ int main(int argc, char *argv[])
 	//imprimeVetor(b, tam);
 	//puts("-------------------------");
 	//puts("Apos Gauss:");
-	//puts("U:");
+	puts("U:");
 	imprimeMatriz(A, tam);
-	//puts("\nL:");
-	//imprimeMatriz(L, tam);
+	puts("\nL:");
+	imprimeMatriz(L, tam);
 	
 	forwardSubstitution(L, y, b, tam);
 	//puts("y:");
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 	
 	//apos Gauss, A virou U
 	retroSubstitution(A, x, y, tam);
-	puts("----------Resultado-----------");
+	//puts("----------Resultado-----------");
 	//imprimeVetor(x, tam);
 	/*
 	imprimeMatriz(A);

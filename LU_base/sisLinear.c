@@ -106,10 +106,10 @@ int main(int argc, char *argv[])
 	//imprimeVetor(b, tam);
 	//puts("-------------------------");
 	//puts("Apos Gauss:");
-	//puts("U:");
-	//imprimeMatriz(A, tam);
-	//puts("\nL:");
-	//imprimeMatriz(L, tam);
+	puts("U:");
+	imprimeMatriz(A, tam);
+	puts("\nL:");
+	imprimeMatriz(L, tam);
 	
 	forwardSubstitution(L, y, b, tam);
 	//puts("y:");
@@ -117,8 +117,8 @@ int main(int argc, char *argv[])
 	
 	//apos Gauss, A virou U
 	retroSubstitution(A, x, y, tam);
-	puts("----------Resultado-----------");
-	imprimeVetor(x, tam);
+	//puts("----------Resultado-----------");
+	//imprimeVetor(x, tam);
 	/*
 	imprimeMatriz(A);
 	imprimeVetor(b);

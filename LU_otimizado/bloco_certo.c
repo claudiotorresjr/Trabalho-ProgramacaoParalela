@@ -7,7 +7,7 @@
 #include "fatLU.h"
 #include "immintrin.h"
 
-#define NTHREADS 8
+#define NTHREADS 1
 #define BLOCK_SIZE 8
 
 void imprimeMatriz(double *A, int tam)
@@ -109,7 +109,7 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 			A[i*tam + j] = 0.0;
 		}
 	
-		//#pragma omp parallel for private(blockCol, blockstart, blockend, i, k, m) num_threads(NTHREADS)
+		//#pragma omp parallel for private(blockCol, blockstart, blockend, blockCol, i, k, m) num_threads(NTHREADS)
 		for(blockLin = 0; blockLin < (tam - j - 1)/BLOCK_SIZE; ++blockLin)
 		{
 			lin = (j + 1) + blockLin*BLOCK_SIZE; linend = lin + BLOCK_SIZE;

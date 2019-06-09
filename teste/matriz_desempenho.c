@@ -60,26 +60,26 @@ int main(int argc, char *argv[])
 			Bt[i*tam + j] = B[j*tam + i];
 		}
 	}
-	printf("%d\n", tam);
-	LIKWID_MARKER_INIT;
+	//printf("%d\n", tam);
+	//LIKWID_MARKER_INIT;
 
-	LIKWID_MARKER_START("multMatrizNormal");
-	multMatrizNormal(A, B, C, tam);
-	LIKWID_MARKER_STOP("multMatrizNormal");
+	//LIKWID_MARKER_START("multMatrizNormal");
+	//multMatrizNormal(A, B, C, tam);
+	//LIKWID_MARKER_STOP("multMatrizNormal");
 
-	LIKWID_MARKER_START("multMatrizTransposta");
+	//LIKWID_MARKER_START("multMatrizTransposta");
 	multMatrizTransposta(A, Bt, C, tam);
-	LIKWID_MARKER_STOP("multMatrizTransposta");
+	//LIKWID_MARKER_STOP("multMatrizTransposta");
 
-	LIKWID_MARKER_START("multMatrizNormalBloco");
-	multMatrizNormalBloco(A, B, C, tam);
-	LIKWID_MARKER_STOP("multMatrizNormalBloco");
-
-	LIKWID_MARKER_START("multMatrizTranspostaBloco");
-	multMatrizTranspostaBloco(A, Bt, C, tam);
-	LIKWID_MARKER_STOP("multMatrizTranspostaBloco");
-
-	LIKWID_MARKER_CLOSE;
+	//LIKWID_MARKER_START("multMatrizNormalBloco");
+	//multMatrizNormalBloco(A, B, C, tam);
+	//LIKWID_MARKER_STOP("multMatrizNormalBloco");
+//
+//	//LIKWID_MARKER_START("multMatrizTranspostaBloco");
+//	//multMatrizTranspostaBloco(A, Bt, C, tam);
+//	//LIKWID_MARKER_STOP("multMatrizTranspostaBloco");
+//
+	//LIKWID_MARKER_CLOSE;
 
 	return 0;	
 }

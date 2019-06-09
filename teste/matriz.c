@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <omp.h>
+
+#define NTHREADS 64
 
 #include "matriz.h"
 
@@ -36,6 +39,7 @@ void multMatrizTransposta(double *A, double *Bt, double *C, unsigned int tam)
 {
 	unsigned int i, j, k;
 
+	#pragma omp parallel for private(j, k) num_threads(NTHREADS)
 	for(i = 0; i < tam; ++i)
 	{
 		for(j = 0; j < tam; ++j)
