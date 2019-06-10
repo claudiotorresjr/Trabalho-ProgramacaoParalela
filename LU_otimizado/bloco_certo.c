@@ -88,8 +88,8 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 	int lin = 0, linend, final;
 	double pivo, m;
 
-	//__m256d vetA, vetB, vetC; //vetor que guarda elementos matriz A
-	//__m256d vetM;
+	__m256d vetA, vetB, vetC; //vetor que guarda elementos matriz A
+	__m256d vetM;
 	 //vetor dos coeficientes de multiplicacao (fator de eliminacao)
 
 
@@ -100,7 +100,7 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 	}
 	
 	for(j = 0; j < tam - 1; ++j)
-	{	
+	{
 		//acha todos os m
 		pivo = A[j*tam + j];
 		for(i = j + 1; i < tam; ++i)
@@ -108,25 +108,48 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 			L[i*tam + j] = A[i*tam + j]/pivo;
 			A[i*tam + j] = 0.0;
 		}
-	
-		//#pragma omp parallel for private(blockCol, blockstart, blockend, blockCol, i, k, m) num_threads(NTHREADS)
-		for(blockLin = 0; blockLin < (tam - j - 1)/BLOCK_SIZE; ++blockLin)
+
+		#pragma omp parallel default(none) private(vetM, vetC, vetA, vetB, blockLin, lin, linend, blockCol, blockstart, blockend, i, k) \
+				shared(j, A, b, L, tam) num_threads(NTHREADS)
 		{
-			lin = (j + 1) + blockLin*BLOCK_SIZE; linend = lin + BLOCK_SIZE;
-			//printf("blockLin %d de %d blocos -- pivo == %d\n", blockLin, (tam - j - 1)/BLOCK_SIZE, j);
-			for(blockCol = 0; blockCol < (tam - j - 1)/BLOCK_SIZE; ++blockCol)
-			{	
-				blockstart = (j + 1) + blockCol*BLOCK_SIZE; blockend = blockstart + BLOCK_SIZE;
-				//printf("blockCol %d de %d blocos -- pivo == %d\n", blockCol, (tam - j - 1)/BLOCK_SIZE, j);
-				for(i = lin; i < MIN(linend, tam); ++i)
-				{
-					//printf("fazendo elementos de A[%d][%d] ate A[%d][%d]\n\n", i, blockstart, i, blockend-1);
-					m = L[i*tam + j];
-					for(k = blockstart; k < MIN(blockend, tam); ++k)
+			int ID = omp_get_thread_num(); 
+
+			for(blockLin = ID; blockLin < (tam - j - 1)/BLOCK_SIZE; blockLin += NTHREADS)
+			{
+				lin = (j + 1) + blockLin*BLOCK_SIZE; linend = lin + BLOCK_SIZE;
+				//printf("blockLin %d de %d blocos -- pivo == %d\n", blockLin, (tam - j - 1)/BLOCK_SIZE, j);
+				for(blockCol = 0; blockCol < (tam - j - 1)/BLOCK_SIZE; blockCol += 1)
+				{	
+					blockstart = (j + 1) + blockCol*BLOCK_SIZE; blockend = blockstart + BLOCK_SIZE;
+					//printf("blockCol %d de %d blocos -- pivo == %d\n", blockCol, (tam - j - 1)/BLOCK_SIZE, j);
+				
+					vetB = _mm256_loadu_pd(&A[j*tam + blockstart]);
+					for(i = lin; i < MIN(linend, tam); ++i)
 					{
-						A[i*tam + k] -= m*A[j*tam + k];
+						//printf("fazendo elementos de A[%d][%d] ate A[%d][%d]\n\n", i, blockstart, i, blockend-1);
+						vetM = _mm256_broadcast_sd(&L[i*tam + j]);
+						vetC = _mm256_mul_pd(vetB, vetM);
+						
+						vetA = _mm256_loadu_pd(&A[i*tam + blockstart]); 
+						vetA = _mm256_sub_pd(vetA, vetC);
+						_mm256_storeu_pd(&A[i*tam + blockstart], vetA);
+
+						//b[i] -= m*b[j];
 					}
-					//b[i] -= m*b[j];
+					blockstart += 4;
+					vetB = _mm256_loadu_pd(&A[j*tam + blockstart]);
+					for(i = lin; i < MIN(linend, tam); ++i)
+					{
+						//printf("fazendo elementos de A[%d][%d] ate A[%d][%d]\n\n", i, blockstart, i, blockend-1);
+						vetM = _mm256_broadcast_sd(&L[i*tam + j]);
+						vetC = _mm256_mul_pd(vetB, vetM);
+						
+						vetA = _mm256_loadu_pd(&A[i*tam + blockstart]); 
+						vetA = _mm256_sub_pd(vetA, vetC);
+						_mm256_storeu_pd(&A[i*tam + blockstart], vetA);
+
+						//b[i] -= m*b[j];
+					}
 				}
 			}
 		}

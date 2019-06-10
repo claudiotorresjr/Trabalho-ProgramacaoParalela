@@ -4,23 +4,22 @@
 #include <getopt.h>   /* getopt */
 
 #include <omp.h>
-#include <likwid.h>
 
 #include "fatLU.h"
 
 static void usage(char *progname)
 {
-	fprintf(stderr, "Forma de uso: %s [ -n <ordem da matriz> ]\n", progname);
+	fprintf(stderr, "Forma de uso: %s [ -p <numero de threads> -n <ordem da matriz> ]\n", progname);
 	exit(1);
 }
 
-inline double generateRandomA(unsigned int i, unsigned int j, unsigned int k)
+double generateRandomA(unsigned int i, unsigned int j, unsigned int k)
 {
 	double invRandMax = 1.0 / (double)RAND_MAX;
 	return ((i==j)?((double)(k<<1)):(1.0))  * ((double)rand() * invRandMax);
 }
 
-inline double generateRandomB(unsigned int k)
+double generateRandomB(unsigned int k)
 {
 	double invRandMax = 1.0 / (double)RAND_MAX;
 	return ((double)(k<<2)) * ((double)rand() * invRandMax);
@@ -28,57 +27,48 @@ inline double generateRandomB(unsigned int k)
 
 int main(int argc, char *argv[])
 {
-	int tam;
+	int tam, threads;
 	int opt;
 
 	srand(20191);
 
-	if(argc != 3)
+	if(argc != 4)
 	{
 		usage(argv[0]);
 	}
 	
-	while((opt = getopt(argc, argv, "n:")) != -1)
+	while((opt = getopt(argc, argv, "p:n:")) != -1)
 	{
 		switch(opt)
 		{
 			case 'n':
 				tam = atoi(optarg);
 				break;
+			case 'p':
+				threads = atoi(optarg);
 			default:   
 				usage(argv[0]);
 		}
 	}
 
-
+	omp_set_num_threads(threads);
 	
 	int i, j;
-	double *b = (double *)malloc(tam*sizeof(double));
+	double *A = (double*)aligned_alloc(64, tam*tam*sizeof(double));	
+	double *L = (double*)aligned_alloc(64, tam*tam*sizeof(double));
 
-	double **A = (double **)malloc(tam*sizeof(double*));		
-	for(i = 0; i < tam; i++)
-	{
-		A[i] = (double *)malloc(tam*sizeof(double));
-	}
-
-	double **L = (double **)malloc(tam*sizeof(double*));
-	for(i = 0; i < tam; i++)
-	{
-		L[i] = (double *)malloc(tam*sizeof(double));
-	}
-	
+	double *b = (double*)aligned_alloc(64, tam*sizeof(double));
+	double *x = (double*)aligned_alloc(64, tam*sizeof(double));
+	double *y = (double*)aligned_alloc(64, tam*sizeof(double));
 
 	for (i = 0; i < tam; ++i) 
 	{
 		for (j = 0; j < tam; ++j) 
 		{	
-			A[i][j] = generateRandomA(i, j, tam);
+			A[i*tam + j] = generateRandomA(i, j, tam);
 		}
 		b[i] = generateRandomB(tam);
 	}
-	
-	double *x = (double *)malloc(tam*sizeof(double));
-	double *y = (double *)malloc(tam*sizeof(double));
 	
 	//LIKWID_MARKER_INIT;
 	/*--------------------------------------
@@ -100,7 +90,10 @@ int main(int argc, char *argv[])
 	//puts("----------LU-----------");
 	//fatoracaoLU(A,L,tam);
 	//LIKWID_MARKER_START("fatLU");
+	double start = omp_get_wtime();
 	metodoDeGauss(A, b, L, tam);
+	double end = omp_get_wtime();
+	printf("Time:%f\n", end - start);
 	//LIKWID_MARKER_STOP("fatLU");
 	//puts("----------Vetor b apos Gauss-----------");
 	//imprimeVetor(b, tam);
@@ -117,8 +110,8 @@ int main(int argc, char *argv[])
 	
 	//apos Gauss, A virou U
 	retroSubstitution(A, x, y, tam);
-	//puts("----------Resultado-----------");
-	//imprimeVetor(x, tam);
+	puts("----------Resultado-----------");
+	imprimeVetor(x, tam);
 	/*
 	imprimeMatriz(A);
 	imprimeVetor(b);
@@ -132,7 +125,7 @@ int main(int argc, char *argv[])
 	free(b);
 	free(x);
 	free(y);
-	
+
 	//LIKWID_MARKER_CLOSE;
 	return 0;
 }

@@ -4,7 +4,6 @@
 #include <getopt.h>   /* getopt */
 
 #include <omp.h>
-#include <likwid.h>
 
 #include "fatLU.h"
 
@@ -100,16 +99,19 @@ int main(int argc, char *argv[])
 	//puts("----------LU-----------");
 	//fatoracaoLU(A,L,tam);
 	//LIKWID_MARKER_START("fatLU");
+	double start = omp_get_wtime();
 	metodoDeGauss(A, b, L, tam);
+	double end = omp_get_wtime();
+	printf("Time:%f\n", end - start);
 	//LIKWID_MARKER_STOP("fatLU");
 	//puts("----------Vetor b apos Gauss-----------");
 	//imprimeVetor(b, tam);
 	//puts("-------------------------");
 	//puts("Apos Gauss:");
-	puts("U:");
-	imprimeMatriz(A, tam);
-	puts("\nL:");
-	imprimeMatriz(L, tam);
+	//puts("U:");
+	//imprimeMatriz(A, tam);
+	//puts("\nL:");
+	//imprimeMatriz(L, tam);
 	
 	forwardSubstitution(L, y, b, tam);
 	//puts("y:");
@@ -117,8 +119,8 @@ int main(int argc, char *argv[])
 	
 	//apos Gauss, A virou U
 	retroSubstitution(A, x, y, tam);
-	//puts("----------Resultado-----------");
-	//imprimeVetor(x, tam);
+	puts("----------Resultado-----------");
+	imprimeVetor(x, tam);
 	/*
 	imprimeMatriz(A);
 	imprimeVetor(b);

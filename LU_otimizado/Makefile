@@ -1,5 +1,5 @@
 		PROG   = sisLinear
-		OBJS   = $(PROG).o fatLU.o
+		OBJS   = $(PROG).o fatLU.o #avx_bloco.o
 
 #		LIKWID = /home/soft/likwid
 #	LIKWID_FLAGS = -DLIKWID_PERFMON -I$(LIKWID)/include
