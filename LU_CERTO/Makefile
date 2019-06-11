@@ -1,13 +1,13 @@
 		PROG   = sisLinear
-		OBJS   = $(PROG).o fatLU.o #avx_bloco.o
+		OBJS   = $(PROG).o fatLU.o
 
 #		LIKWID = /home/soft/likwid
 #	LIKWID_FLAGS = -DLIKWID_PERFMON -I$(LIKWID)/include
 #	LIKWID_LIBS = -L$(LIKWID)/lib -llikwid
 
-		CC = gcc -O3 -mavx -fopenmp
+		CC = gcc -O3 -fopenmp -g -mavx -shared-libgcc
 	CFLAGS = -Wall #$(LIKWID_FLAGS)
-	LFLAGS = #-lm   $(LIKWID_LIBS) 
+	LFLAGS = -lm   #$(LIKWID_LIBS) 
 
 .PHONY: clean limpa purge faxina distclean debug avx
 

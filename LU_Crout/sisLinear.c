@@ -59,7 +59,8 @@ int main(int argc, char *argv[])
 	int i, j;
 	double *A = (double*)aligned_alloc(64, tam*tam*sizeof(double));	
 	double *L = (double*)aligned_alloc(64, tam*tam*sizeof(double));
-
+	double *U = (double*)aligned_alloc(64, tam*tam*sizeof(double));	
+	
 	double *b = (double*)aligned_alloc(64, tam*sizeof(double));
 	double *x = (double*)aligned_alloc(64, tam*sizeof(double));
 	double *y = (double*)aligned_alloc(64, tam*sizeof(double));
@@ -92,6 +93,7 @@ int main(int argc, char *argv[])
 
 	free(A);
 	free(L);
+	free(U);
 	free(b);
 	free(x);
 	free(y);

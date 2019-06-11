@@ -107,7 +107,6 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 		for(i = j + 1; i < tam; ++i)
 		{
 			L[i*tam + j] = A[i*tam + j]/pivo;
-			b[i] -= L[i*tam + j]*b[j];
 			A[i*tam + j] = 0.0;
 		}
 

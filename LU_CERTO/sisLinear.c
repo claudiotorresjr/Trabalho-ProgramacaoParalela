@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
 	srand(20191);
 
-	if(argc != 4)
+	if(argc != 5)
 	{
 		usage(argv[0]);
 	}
@@ -46,17 +46,21 @@ int main(int argc, char *argv[])
 				break;
 			case 'p':
 				threads = atoi(optarg);
+				break;
 			default:   
 				usage(argv[0]);
 		}
 	}
+
+	double start = omp_get_wtime();
 
 	omp_set_num_threads(threads);
 	
 	int i, j;
 	double *A = (double*)aligned_alloc(64, tam*tam*sizeof(double));	
 	double *L = (double*)aligned_alloc(64, tam*tam*sizeof(double));
-
+	double *U = (double*)aligned_alloc(64, tam*tam*sizeof(double));	
+	
 	double *b = (double*)aligned_alloc(64, tam*sizeof(double));
 	double *x = (double*)aligned_alloc(64, tam*sizeof(double));
 	double *y = (double*)aligned_alloc(64, tam*sizeof(double));
@@ -69,8 +73,7 @@ int main(int argc, char *argv[])
 		}
 		b[i] = generateRandomB(tam);
 	}
-	
-	//LIKWID_MARKER_INIT;
+
 	/*--------------------------------------
 	(1)-> A.x = b -> fatorar A em L.U
 	(2)-> L.U.x = b
@@ -80,52 +83,23 @@ int main(int argc, char *argv[])
 	(4)-> L.y = b
 	--------------------------------------*/
 
-	//puts("----------Matriz A-----------");
-	//imprimeMatriz(A, tam);
-	//puts("\n");
-	//puts("----------Vetor de coeficientes b-----------");
-	//imprimeVetor(b, tam);
-	//puts("\n");
-	//imprimeMatriz(A, tam);
-	//puts("----------LU-----------");
-	//fatoracaoLU(A,L,tam);
-	//LIKWID_MARKER_START("fatLU");
-	double start = omp_get_wtime();
-	metodoDeGauss(A, b, L, tam);
-	double end = omp_get_wtime();
-	printf("Time:%f\n", end - start);
-	//LIKWID_MARKER_STOP("fatLU");
-	//puts("----------Vetor b apos Gauss-----------");
-	//imprimeVetor(b, tam);
-	//puts("-------------------------");
-	//puts("Apos Gauss:");
-	//puts("U:");
-	//imprimeMatriz(A, tam);
-	//puts("\nL:");
-	//imprimeMatriz(L, tam);
+	metodoDeGauss(A, b, L, U, tam);
 	
 	forwardSubstitution(L, y, b, tam);
-	//puts("y:");
-	//imprimeVetor(y, tam);
-	
-	//apos Gauss, A virou U
-	retroSubstitution(A, x, y, tam);
-	puts("----------Resultado-----------");
+
+	retroSubstitution(U, x, y, tam);
+	printf("----------Resultado-----------\n");
 	imprimeVetor(x, tam);
-	/*
-	imprimeMatriz(A);
-	imprimeVetor(b);
-	
-	printf("\n Resultado: \n");
-	imprimeVetor(x);
-	*/
 
 	free(A);
 	free(L);
+	free(U);
 	free(b);
 	free(x);
 	free(y);
 
-	//LIKWID_MARKER_CLOSE;
+	double end = omp_get_wtime();
+	printf("Time:%f\n", end - start);
+
 	return 0;
 }

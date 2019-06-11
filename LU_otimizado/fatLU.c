@@ -82,12 +82,12 @@ void trocaLinhas(double *A, double *b, int tam, int k, int l)
 	b[l] = aux;
 }
 
-void metodoDeGauss(double *A, double *b, double *L, int tam)
+void metodoDeGauss(int threads, double *A, double *b, double *L, int tam)
 {
 	int j, i, k, blockLin;
 	int lin = 0, linend;
 	double pivo;
-	int NTHREADS = omp_get_num_threads();
+	int NTHREADS = threads;
 
 	memset(L, 0.0, tam*tam*sizeof(double));
 	for(i = 0; i < tam; ++i)
@@ -99,18 +99,17 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 	{
 		//acha todos os m
 		pivo = A[j*tam + j];
+		#pragma omp parallel for
 		for(i = j + 1; i < tam; ++i)
 		{
 			L[i*tam + j] = A[i*tam + j]/pivo;
-			b[i] = b[i] - L[i*tam + j]*b[j];
 			A[i*tam + j] = 0.0;
 		}
 
-		#pragma omp parallel default(none) private(blockLin, lin, linend, i, k) \
+		//#pragma omp parallel default(none) private(blockLin, lin, linend, i, k) \
 				shared(NTHREADS, j, A, b, L, tam) num_threads(NTHREADS)
 		{
 			int ID = omp_get_thread_num(); 
-			//#pragma omp for schedule(static, 500)
 			for(blockLin = ID; blockLin < (tam - j - 1)/BLOCK_SIZE; blockLin += NTHREADS)
 			{
 				lin = (j + 1) + blockLin*BLOCK_SIZE; linend = lin + BLOCK_SIZE;
@@ -140,7 +139,6 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 			}
 			
 			//printf("\n");
-			//b[i] = b[i] - m*b[j];
 		}
 	}
 }

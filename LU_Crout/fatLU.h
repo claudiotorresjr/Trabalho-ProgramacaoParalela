@@ -9,7 +9,6 @@ void imprimeVetor(double *v, int tam);
 void forwardSubstitution(double *A, double *x, double *b, int tam);
 void retroSubstitution(double *A, double *x, double *b, int tam);
 void trocaLinhas(double *A, double *b, int tam, int k, int l);
-void metodoDeGauss(int threads, double *A, double *b, double *L, int tam);
-void fatoracaoLU(double *A, double *L, int tam);
+void metodoDeGauss(double *A, double *b, double *L, double *U, int tam);
 
 #endif

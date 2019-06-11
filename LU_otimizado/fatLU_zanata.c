@@ -157,7 +157,6 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 						A[i*tam + l] = A[i*tam + l] - L[i*tam + j]*A[j*tam + l];
 						//printf("normal -> %d\n", l);
 					}
-					b[i] = b[i] - L[i*tam + j]*b[j];
 					//printf("finalizando thread %d\n", ID-1);
 				}					
 			}
@@ -173,7 +172,6 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 				{
 					A[i*tam + l] = A[i*tam + l] - L[i*tam + j]*A[j*tam + l];
 				}
-				b[i] = b[i] - L[i*tam + j]*b[j];
 			}
 
 		}

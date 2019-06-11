@@ -123,7 +123,6 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 			//A[i][l] = ...
 			_mm256_storeu_pd(&A[i*tam + be], vetB);
 			A[i*tam + j] = 0.0;
-			b[i] = b[i] - m*b[j];
 		}
 		for(k = (j/BLOCK_SIZE)+1; k < tam/BLOCK_SIZE; ++k)
 		{	

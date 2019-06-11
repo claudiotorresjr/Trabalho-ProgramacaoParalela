@@ -7,7 +7,7 @@
 #include "fatLU.h"
 #include "immintrin.h"
 
-#define NTHREADS 1
+
 #define BLOCK_SIZE 8
 
 void imprimeMatriz(double *A, int tam)
@@ -93,6 +93,9 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 	 //vetor dos coeficientes de multiplicacao (fator de eliminacao)
 
 
+	int NTHREADS = omp_get_num_threads();
+
+	printf("%d \n", NTHREADS);
 	memset(L, 0.0, tam*tam*sizeof(double));
 	for(i = 0; i < tam; ++i)
 	{
@@ -110,7 +113,7 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 		}
 
 		#pragma omp parallel default(none) private(vetM, vetC, vetA, vetB, blockLin, lin, linend, blockCol, blockstart, blockend, i, k) \
-				shared(j, A, b, L, tam) num_threads(NTHREADS)
+				shared(NTHREADS, j, A, b, L, tam) num_threads(NTHREADS)
 		{
 			int ID = omp_get_thread_num(); 
 
@@ -148,7 +151,6 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 						vetA = _mm256_sub_pd(vetA, vetC);
 						_mm256_storeu_pd(&A[i*tam + blockstart], vetA);
 
-						//b[i] -= m*b[j];
 					}
 				}
 			}
@@ -170,7 +172,6 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 			}
 			
 			//printf("\n");
-			//b[i] = b[i] - m*b[j];
 		}
 	}
 }

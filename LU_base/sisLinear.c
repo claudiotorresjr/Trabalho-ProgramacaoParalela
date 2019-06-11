@@ -52,6 +52,9 @@ int main(int argc, char *argv[])
 
 	
 	int i, j;
+
+	double start = omp_get_wtime();
+	
 	double *b = (double *)malloc(tam*sizeof(double));
 
 	double **A = (double **)malloc(tam*sizeof(double*));		
@@ -88,46 +91,13 @@ int main(int argc, char *argv[])
 	tendo y, resolvemos o sistema:
 	(4)-> L.y = b
 	--------------------------------------*/
-
-	//puts("----------Matriz A-----------");
-	//imprimeMatriz(A, tam);
-	//puts("\n");
-	//puts("----------Vetor de coeficientes b-----------");
-	//imprimeVetor(b, tam);
-	//puts("\n");
-	//imprimeMatriz(A, tam);
-	//puts("----------LU-----------");
-	//fatoracaoLU(A,L,tam);
-	//LIKWID_MARKER_START("fatLU");
-	double start = omp_get_wtime();
 	metodoDeGauss(A, b, L, tam);
-	double end = omp_get_wtime();
-	printf("Time:%f\n", end - start);
-	//LIKWID_MARKER_STOP("fatLU");
-	//puts("----------Vetor b apos Gauss-----------");
-	//imprimeVetor(b, tam);
-	//puts("-------------------------");
-	//puts("Apos Gauss:");
-	//puts("U:");
-	//imprimeMatriz(A, tam);
-	//puts("\nL:");
-	//imprimeMatriz(L, tam);
 	
 	forwardSubstitution(L, y, b, tam);
-	//puts("y:");
-	//imprimeVetor(y, tam);
-	
-	//apos Gauss, A virou U
+
 	retroSubstitution(A, x, y, tam);
-	puts("----------Resultado-----------");
+	printf("----------Resultado-----------\n");
 	imprimeVetor(x, tam);
-	/*
-	imprimeMatriz(A);
-	imprimeVetor(b);
-	
-	printf("\n Resultado: \n");
-	imprimeVetor(x);
-	*/
 
 	free(A);
 	free(L);
@@ -135,6 +105,7 @@ int main(int argc, char *argv[])
 	free(x);
 	free(y);
 	
-	//LIKWID_MARKER_CLOSE;
+	double end = omp_get_wtime();
+	printf("Time:%f\n", end - start);
 	return 0;
 }

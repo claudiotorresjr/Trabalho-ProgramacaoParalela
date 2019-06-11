@@ -7,7 +7,7 @@
 #include "fatLU.h"
 #include "immintrin.h"
 
-//#define NTHREADS 8
+//#define NTHREADS 1
 #define BLOCK_SIZE 8
 
 void imprimeMatriz(double *A, int tam)
@@ -82,79 +82,63 @@ void trocaLinhas(double *A, double *b, int tam, int k, int l)
 	b[l] = aux;
 }
 
-void metodoDeGauss(double *A, double *b, double *L, int tam)
+void metodoDeGauss(int threads, double *A, double *b, double *L, int tam)
 {
-	int j, i, k, blockstart, blockend, blockCol;
-	//int lin = 0, linend, blockLin;
-	int final;
+	int j, i, k, blockLin;
+	int lin = 0, linend;
 	double pivo;
-
-	//__m256d vetA, vetB, vetC; //vetor que guarda elementos matriz A
-	//__m256d vetM;
-	 //vetor dos coeficientes de multiplicacao (fator de eliminacao)
-	int NTHREADS = omp_get_num_threads();
+	int NTHREADS = threads;
 
 	memset(L, 0.0, tam*tam*sizeof(double));
 	for(i = 0; i < tam; ++i)
 	{
 		L[i*tam + i] = 1.0;
 	}
-	
+
 	for(j = 0; j < tam - 1; ++j)
 	{
 		//acha todos os m
 		pivo = A[j*tam + j];
+		#pragma omp parallel for
 		for(i = j + 1; i < tam; ++i)
 		{
 			L[i*tam + j] = A[i*tam + j]/pivo;
-			b[i] -= L[i*tam + j]*b[j];
 			A[i*tam + j] = 0.0;
 		}
 
-		#pragma omp parallel default(none) private(blockCol, blockstart, blockend, i, k) \
-				shared(j, A, b, L, tam, NTHREADS)
+		#pragma omp parallel default(none) private(blockLin, lin, linend, i, k) \
+				shared(NTHREADS, j, A, b, L, tam) num_threads(NTHREADS)
 		{
 			int ID = omp_get_thread_num(); 
-
-			//printf("blockLin %d de %d blocos -- pivo == %d\n", blockLin, (tam - j - 1)/BLOCK_SIZE, j);
-			for(blockCol = ID; blockCol < (tam - j - 1)/BLOCK_SIZE; blockCol += NTHREADS)
-			{	
-				blockstart = (j + 1) + blockCol*BLOCK_SIZE; blockend = blockstart + BLOCK_SIZE;
-				//printf("blockCol %d de %d blocos -- pivo == %d\n", blockCol, (tam - j - 1)/BLOCK_SIZE, j);
-				for(i = j + 1; i < tam; ++i)
+			for(blockLin = ID; blockLin < (tam - j - 1)/BLOCK_SIZE; blockLin += NTHREADS)
+			{
+				lin = (j + 1) + blockLin*BLOCK_SIZE; linend = lin + BLOCK_SIZE;
+				//printf("blockLin %d de %d blocos -- pivo == %d\n", blockLin, (tam - j - 1)/BLOCK_SIZE, j);
+				for(i = lin; i < linend; ++i)
 				{
 					//printf("fazendo elementos de A[%d][%d] ate A[%d][%d]\n\n", i, lin, i, linend-1);
-					for(k = blockstart; k < blockend; k++)
+					for(k = j + 1; k < tam; k++)
 					{
 						A[i*tam + k] -= L[i*tam + j]*A[j*tam + k];
 					}
 				}
-				//vetB = _mm256_loadu_pd(&A[j*tam + blockstart]);
-				//for(i = j + 1; i < tam; ++i)
-				//{
-				//	//printf("fazendo elementos de A[%d][%d] ate A[%d][%d]\n\n", i, blockstart, i, blockend-1);
-				//	vetM = _mm256_broadcast_sd(&L[i*tam + j]);
-				//	vetC = _mm256_mul_pd(vetB, vetM);
-				//	
-				//	vetA = _mm256_loadu_pd(&A[i*tam + blockstart]); 
-				//	vetA = _mm256_sub_pd(vetA, vetC);
-				//	_mm256_storeu_pd(&A[i*tam + blockstart], vetA);
-				//}
 			}
 		}
 		
-		for(i = j + 1; i < tam; ++i)
+		i = (j + 1) + ((tam - j - 1)/BLOCK_SIZE - 1)*BLOCK_SIZE + BLOCK_SIZE;
+		if(((tam - j - 1)/BLOCK_SIZE == 0))
 		{
-			//final = blockstart + BLOCK_SIZE;
-			final = (j + 1) + ((tam - j - 1)/BLOCK_SIZE - 1)*BLOCK_SIZE + BLOCK_SIZE;
-			for(k = final; k < tam; ++k)
+			i = j + 1;
+		}
+		for(; i < tam; ++i)
+		{
+			for(k = j + 1; k < tam; ++k)
 			{
 				//printf("Linha %d terminando a coluna %d\n", i, k);
 				A[i*tam + k] -= L[i*tam + j]*A[j*tam + k];
 			}
 			
 			//printf("\n");
-			//b[i] = b[i] - m*b[j];
 		}
 	}
 }
