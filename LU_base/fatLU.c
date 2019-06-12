@@ -114,14 +114,16 @@ void metodoDeGauss(double **A, double *b, double **L, int tam)
 		
 		for(i = j + 1; i < tam; ++i)
 		{		
+		
 			m = A[i][j]/A[j][j];
 			L[i][j] = m;
 			A[i][j] = 0.0;
 			for(l = j+1; l < tam; l++)
 			{
+		
 				A[i][l] = A[i][l] - m*A[j][l];
 			}
-			b[i] = b[i] - m*b[j];
 		}
 	}
+	
 }

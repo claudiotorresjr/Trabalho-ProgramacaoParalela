@@ -82,7 +82,7 @@ void trocaLinhas(double *A, double *b, int tam, int k, int l)
 	b[l] = aux;
 }
 
-void metodoDeGauss(double *A, double *b, double *L, int tam)
+void metodoDeGauss(int threads, double *A, double *b, double *L, int tam)
 {
 	int j, i, k, blockstart, blockend, blockCol, blockLin;
 	int lin = 0, linend, final;
@@ -93,9 +93,8 @@ void metodoDeGauss(double *A, double *b, double *L, int tam)
 	 //vetor dos coeficientes de multiplicacao (fator de eliminacao)
 
 
-	int NTHREADS = omp_get_num_threads();
+	int NTHREADS = threads;
 
-	printf("%d \n", NTHREADS);
 	memset(L, 0.0, tam*tam*sizeof(double));
 	for(i = 0; i < tam; ++i)
 	{

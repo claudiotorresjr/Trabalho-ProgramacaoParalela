@@ -99,6 +99,7 @@ void metodoDeGauss(double *A, double *b, double *L, double *U, int tam)
 	memset(L, 0.0, tam*tam*sizeof(double));
 	memset(Ut, 0.0, tam*tam*sizeof(double));
 
+	unsigned int cont = 0;
 	for(i = 0; i < tam; ++i)
 	{
 		L[i*tam + 0] = A[i*tam + 0];
@@ -111,24 +112,29 @@ void metodoDeGauss(double *A, double *b, double *L, double *U, int tam)
 
 	for(m = 1; m < tam; ++m)
 	{
+		
 		for(i = m; i < tam; ++i)
 		{
+		
 			for(k = 0; k < m; ++k)
 			{
+		
 				A[i*tam + m] -= L[i*tam + k]*Ut[m*tam + k];
 			}
 			L[i*tam + m] = A[i*tam + m];
 		}
 
-		for(j = m + 1; j < tam + 1;  ++j)
+		for(j = m + 1; j < tam;  ++j)
 		{
+		
 			for(k = 0; k < m;  ++k)
-			{
+			{	
 				A[m*tam + j] -= L[m*tam + k]*Ut[j*tam + k];
 			}
-			Ut[j*tam + m] = A[m*tam + j]/L[m*tam + m];
+			Ut[j*tam + k] = A[m*tam + j]/L[m*tam + m];
 		}
 	}
+
 
 	for(i = 0; i < tam; ++i)
 	{

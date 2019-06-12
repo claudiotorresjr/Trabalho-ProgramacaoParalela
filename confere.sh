@@ -40,29 +40,33 @@
 #fi
 
 #versao otimizada
-#resultados="resultadosLU_otimizado"
+resultados="resultados"
 #if [[ ! -e "$resultados" ]] 
 #then
 #	mkdir "$resultados"
-#	for proc in 1 2 4 8 16 32
-#	do
-#		for tam in 3000 4243 6000 8486 12000
-#		do
-#			for exec in {1..20}
-#			do
-#				sudo nice -n -20 ./LU_otimizado/sisLinear -p "$proc" -n "$tam" > "$tam".temp
-#				soma=$(grep "Time" "$tam".temp | awk -F":" '{print $2}')
-#				echo "$soma" >> soma.tmp
-#			done
-#			
-#			#numero de processadores
-#			printf "$proc " >> "$resultados"/LU_otimizado.txt
-#			#quantidade de elementos da matriz em bytes
-#			printf "$((tam*tam*8/1024/1024)) " >> "$resultados"/LU_otimizado.txt
-#			#media e desvio padrao do tempo de execucao
-#			./desvio >> "$resultados"/LU_otimizado.txt
-#			rm *.tmp
-#		done 
-#	done
+	for proc in 16 #32
+	do
+		for tam in 11313  #4000 5656 8000 11313 #16000
+		do
+			printf "proc $proc tam $tam\n "
+
+			for exec in {1..10}
+			do
+				printf "   -->exec $exec \n"
+
+				./LU_Crout/sisLinear -p "$proc" -n "$tam" > "$tam".tmp
+				soma=$(grep "Time" "$tam".tmp | awk -F":" '{print $2}')
+				echo "$soma" >> soma.tmp
+			done
+			
+			#numero de processadores
+			printf "$proc " >> "$resultados"/LU_CroutParalelo.txt
+			#quantidade de elementos da matriz em mbytes
+			printf "$((tam)) " >> "$resultados"/LU_CroutParalelo.txt
+			#media e desvio padrao do tempo de execucao
+			./desvio >> "$resultados"/LU_CroutParalelo.txt
+			rm *.tmp
+		done 
+	done
 #fi
 #rm *.temp

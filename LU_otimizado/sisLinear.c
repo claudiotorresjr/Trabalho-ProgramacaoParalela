@@ -82,11 +82,11 @@ int main(int argc, char *argv[])
 	(4)-> L.y = b
 	--------------------------------------*/
 
-	metodoDeGauss(A, b, L, U, tam);
+	metodoDeGauss(threads, A, b, L, tam);
 	
 	forwardSubstitution(L, y, b, tam);
 
-	retroSubstitution(U, x, y, tam);
+	retroSubstitution(A, x, y, tam);
 	printf("----------Resultado-----------\n");
 	imprimeVetor(x, tam);
 

@@ -5,7 +5,7 @@
 #	LIKWID_FLAGS = -DLIKWID_PERFMON -I$(LIKWID)/include
 #	LIKWID_LIBS = -L$(LIKWID)/lib -llikwid
 
-		CC = gcc -O2 -fopenmp -g -mavx2 -shared-libgcc -std=c11 -march=native
+		CC = gcc -O3 -fopenmp -g -mavx2 -shared-libgcc -std=c11 -march=native
 	CFLAGS = -Wall #$(LIKWID_FLAGS)
 	LFLAGS = -lm   #$(LIKWID_LIBS) 
 

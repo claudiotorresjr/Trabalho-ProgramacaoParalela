@@ -106,7 +106,7 @@ void metodoDeGauss(int threads, double *A, double *b, double *L, int tam)
 			A[i*tam + j] = 0.0;
 		}
 
-		//#pragma omp parallel default(none) private(blockLin, lin, linend, i, k) \
+		#pragma omp parallel default(none) private(blockLin, lin, linend, i, k) \
 				shared(NTHREADS, j, A, b, L, tam) num_threads(NTHREADS)
 		{
 			int ID = omp_get_thread_num(); 
