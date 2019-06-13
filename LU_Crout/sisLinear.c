@@ -27,7 +27,7 @@ double generateRandomB(unsigned int k)
 
 int main(int argc, char *argv[])
 {
-	int tam, threads;
+	int tam = 3, threads = 0;
 	int opt;
 
 	srand(20191);
